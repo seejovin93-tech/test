@@ -1,0 +1,23 @@
+mode: set
+prufwerk/main.go:9.13,21.2 4 0
+prufwerk/main.go:24.60,27.2 2 1
+prufwerk/tasks.go:21.59,24.18 2 1
+prufwerk/tasks.go:25.22,27.39 1 0
+prufwerk/tasks.go:29.23,34.78 2 1
+prufwerk/tasks.go:34.78,37.4 2 0
+prufwerk/tasks.go:38.3,42.35 5 1
+prufwerk/tasks.go:44.22,49.61 2 1
+prufwerk/tasks.go:49.61,52.4 2 0
+prufwerk/tasks.go:53.3,55.17 3 1
+prufwerk/tasks.go:55.17,58.4 2 0
+prufwerk/tasks.go:59.3,59.24 1 1
+prufwerk/tasks.go:59.24,60.25 1 1
+prufwerk/tasks.go:60.25,64.5 3 1
+prufwerk/tasks.go:66.3,66.67 1 0
+prufwerk/tasks.go:68.25,72.17 3 1
+prufwerk/tasks.go:72.17,75.4 2 0
+prufwerk/tasks.go:76.3,77.24 2 1
+prufwerk/tasks.go:77.24,78.25 1 1
+prufwerk/tasks.go:78.25,87.5 5 1
+prufwerk/tasks.go:89.3,89.67 1 0
+prufwerk/tasks.go:91.10,92.79 1 0

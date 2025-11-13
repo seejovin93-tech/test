@@ -1,0 +1,22 @@
+# Exclude version control folders
+.git
+.gitignore
+
+# Exclude IDE/editor configuration files
+.vscode
+.idea
+*.swp
+
+# Exclude test files and directories
+tests/
+*.test.js
+
+# Exclude node_modules (for Node.js projects)
+node_modules/
+
+# Exclude build artifacts
+dist/
+build/
+
+# Exclude Dockerfile if not needed for the build context
+Dockerfile
