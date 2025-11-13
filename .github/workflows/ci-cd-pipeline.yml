@@ -3,32 +3,32 @@ name: Build and Deploy Docker Image
 on:
   push:
     branches:
-      - main  # Run the pipeline on every push to the `main` branch
+      - main  # Trigger pipeline on push to the `main` branch
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Use an Ubuntu image for the CI/CD runner
+    runs-on: ubuntu-latest  # Use an Ubuntu runner
 
     steps:
-      # Step 1: Checkout the code from the repository
-      - name: Checkout code
-        uses: actions/checkout@v2
+    # Step 1: Checkout the code from the repository
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      # Step 2: Set up Docker Buildx (for advanced Docker builds)
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+    # Step 2: Set up Docker Buildx (for advanced Docker builds)
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
 
-      # Step 3: Build the Docker image with the correct tag
-      - name: Build Docker image
-        run: |
-          docker buildx build --file Dockerfile --tag prufwerk:latest .
+    # Step 3: Build the Docker image with the correct tag
+    - name: Build Docker image
+      run: |
+        docker buildx build --file Dockerfile --tag prufwerk:latest .
 
-      # Step 4: Login to Docker Hub using GitHub Secrets for username and password
-      - name: Login to Docker Hub
-        run: |
-          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+    # Step 4: Login to Docker Hub securely using GitHub Secrets
+    - name: Login to Docker Hub
+      run: |
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
-      # Step 5: Push the Docker image to Docker Hub
-      - name: Push Docker image to Docker Hub
-        run: |
-          docker push prufwerk:latest
+    # Step 5: Push the Docker image to Docker Hub
+    - name: Push Docker image to Docker Hub
+      run: |
+        docker push prufwerk:latest
