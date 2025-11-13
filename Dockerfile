@@ -1,7 +1,7 @@
 # Stage 1: Build the Go binary
 FROM golang:1.24 AS builder
 
-WORKDIR /app
+WORKDIR                                                                                     /app
 COPY . .
 
 # Install dependencies

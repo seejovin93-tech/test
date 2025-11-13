@@ -1,33 +1,34 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# 1. Check if the health endpoint is working
-echo "=== HEALTH | HTTP 200 ==="
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health | grep -q "200" && echo '{"ok":true}' || echo "Health check failed!"
+# Use exported DOCKER if present; else detect now.
+DOCKER_BIN="${DOCKER:-}"
+if [[ -z "$DOCKER_BIN" ]]; then
+  if docker version >/dev/null 2>&1; then
+    DOCKER_BIN="docker"
+  else
+    DOCKER_BIN="sudo docker"
+  fi
+fi
 
-# 2. Test GET request to fetch tasks (pre-clean)
-echo "=== GET (pre-clean) | HTTP 200 ==="
-curl -s http://localhost:8080/tasks
+name="prufwerk"
+img="prufwerk:local"
 
-# 3. POST a new task
-echo "=== POST /tasks | HTTP 201 ==="
-curl -s -X POST -H "Content-Type: application/json" -d '{"text":"demo"}' http://localhost:8080/tasks
+echo "== start container =="
+$DOCKER_BIN rm -f "$name" 2>/dev/null || true
+$DOCKER_BIN run -d --name "$name" -p 8080:8080 "$img" >/dev/null
 
-# 4. GET the tasks list after posting
-echo "=== GET /tasks (after POST) | HTTP 200 ==="
-curl -s http://localhost:8080/tasks
+# wait for service
+for i in {1..10}; do
+  if curl -sf "http://localhost:8080/health" >/dev/null; then break; fi
+  sleep 0.5
+done
 
-# 5. PUT request to mark the task as done
-echo "=== PUT /tasks?id=1 | HTTP 200 ==="
-curl -s -X PUT -H "Content-Type: application/json" -d '{"done":true}' http://localhost:8080/tasks?id=1
+./scripts/smoke.sh
 
-# 6. GET the tasks list after marking the task as done
-echo "=== GET /tasks (after PUT) | HTTP 200 ==="
-curl -s http://localhost:8080/tasks
+echo "== logs =="
+$DOCKER_BIN logs "$name" | tail -n +1
 
-# 7. DELETE the task
-echo "=== DELETE /tasks?id=1 | HTTP 204 ==="
-curl -s -X DELETE http://localhost:8080/tasks?id=1
-
-# 8. Final GET should return empty list
-echo "=== GET /tasks (final) | HTTP 200 ==="
-curl -s http://localhost:8080/tasks
+echo "== stop container =="
+$DOCKER_BIN rm -f "$name" >/dev/null
+echo "CONTAINER SMOKE: PASS"

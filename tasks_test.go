@@ -10,7 +10,7 @@ import (
 
 func TestTasks(t *testing.T) {
 	// Test POST /tasks (creating a task)
-	req := httptest.NewRequest(http.MethodPost, "/tasks", strings.NewReader(`{"text":"Test Task"}`)) // Correct request body
+	req := httptest.NewRequest(http.MethodPost, "/tasks", strings.NewReader(`{"title":"Test Task"}`)) // Correct request body
 	rr := httptest.NewRecorder()
 	tasksHandler(rr, req)
 
@@ -25,8 +25,8 @@ func TestTasks(t *testing.T) {
 		t.Fatalf("failed to decode response: %v", err)
 	}
 
-	if createdTask.Text != "Test Task" {
-		t.Fatalf("created task text=%s want=%s", createdTask.Text, "Test Task")
+	if createdTask.Title != "Test Task" {
+		t.Fatalf("created task title=%s want=%s", createdTask.Title, "Test Task")
 	}
 
 	// Additional tests for GET, PUT, DELETE can be added here
