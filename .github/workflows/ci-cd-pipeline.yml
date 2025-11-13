@@ -3,11 +3,11 @@ name: Build and Deploy Docker Image
 on:
   push:
     branches:
-      - main  # Run the pipeline on every push to the `main` branch
+      - main  # This triggers the pipeline on every push to the `main` branch
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Use an Ubuntu image for the CI/CD runner
+    runs-on: ubuntu-latest  # Use an Ubuntu runner for this job
 
     steps:
     # Step 1: Checkout the code from the repository
@@ -18,7 +18,7 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    # Step 3: Build the Docker image with the correct tag
+    # Step 3: Build the Docker image
     - name: Build Docker image
       run: |
         docker buildx build --file Dockerfile --tag prufwerk:latest .
