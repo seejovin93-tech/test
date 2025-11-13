@@ -15,12 +15,12 @@ jobs:
         uses: actions/checkout@v2
 
       # Step 2: Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+      - name: Build Docker image
+        run: docker buildx build --file Dockerfile --seejovin93/prufwerk:latest .
 
       # Step 3: Build the Docker image
       - name: Build Docker image
-        run: docker buildx build --file Dockerfile --tag prufwerk:latest .
+        run: docker push seejovin93/prufwerk:latest
 
       # Step 4: Push Docker image to Docker Hub (or any registry)
       - name: Push Docker image
