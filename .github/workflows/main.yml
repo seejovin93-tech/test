@@ -1,0 +1,31 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main  # This will run the pipeline on every push to the `main` branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Use an Ubuntu image for the CI/CD runner
+
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # Step 3: Build the Docker image
+      - name: Build Docker image
+        run: docker buildx build --file Dockerfile --tag prufwerk:latest .
+
+      # Step 4: Push Docker image to Docker Hub (or any registry)
+      - name: Push Docker image
+        run: docker push prufwerk:latest
+
+      # Step 5: Deploy to Kubernetes (if applicable)
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f k8s/deployment.yaml
