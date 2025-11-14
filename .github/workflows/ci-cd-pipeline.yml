@@ -1,4 +1,4 @@
-name: Build and Deploy Docker Image
+name: Build, Push, and Sign Docker Image
 
 on:
   push:
@@ -10,29 +10,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout the code
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # Step 2: Set up Docker Buildx
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    # Step 3: Login to Docker Hub
-    # This uses the official action, which is more secure and reliable.
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }} # It's recommended to use a Docker Hub Access Token here
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # Step 4: Build and push the image in one step
-    # This action builds, tags, and pushes the image for you.
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./Dockerfile
-        push: true
-        # IMPORTANT: The tag must include your Docker Hub username.
-        tags: seejovin93/prufwerk:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: seejovin93/prufwerk:latest
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.8.0
+        with:
+          cosign-release: 'v2.4.1'
+
+      - name: Sign Docker image with cosign
+        env:
+          COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          echo "${COSIGN_KEY}" > cosign.key
+          cosign sign --key cosign.key --yes docker.io/seejovin93/prufwerk:latest
+
+      - name: Verify Docker image signature
+        run: |
+          cosign verify --key cosign.pub docker.io/seejovin93/prufwerk:latest
