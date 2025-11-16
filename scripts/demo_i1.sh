@@ -1,6 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# --- I1 evidence setup (S1 Day 2) ---
+I1_EVIDENCE_DIR="evidence/logs/i1"
+mkdir -p "${I1_EVIDENCE_DIR}"
+
+RUN_TS="$(date -u +%Y%m%dT%H%M%SZ)"
+I1_EVIDENCE_PATH="${I1_EVIDENCE_DIR}/demo_i1_${RUN_TS}.jsonl"
+I1_CORRELATION_ID="demo_i1_${RUN_TS}_$$"
+
+i1_log() {
+  local decision="$1"
+  local image_ref="$2"
+  local step="$3"
+
+  go run ./cmd/i1log \
+    -out "${I1_EVIDENCE_PATH}" \
+    -correlation_id "${I1_CORRELATION_ID}" \
+    -decision "${decision}" \
+    -image_ref "${image_ref}" \
+    -demo_step "${step}"
+}
+# --- end I1 evidence setup ---
+
 echo "== Prufwerk Day 7: I1 prototype demo =="
 echo
 
@@ -98,6 +120,9 @@ sleep 3
 kill "${PF_PID}" 2>/dev/null || true
 wait "${PF_PID}" 2>/dev/null || true
 
+# Log I1 evidence: signed path allowed
+i1_log "ALLOW" "${SIGNED_IMAGE}" "C6_SIGNED_PATH"
+
 # 7) Build and push a NEW unsigned image (fresh digest)
 UNSIGNED_TAG="unsigned-$(date -u +%Y%m%d%H%M%S)"
 UNSIGNED_IMAGE="docker.io/seejovin93/prufwerk:${UNSIGNED_TAG}"
@@ -132,6 +157,9 @@ echo "  - kubectl set image exit code: ${SET_RC} (non-zero as expected)"
 echo "  - Checking recent events mentioning prufwerk / Kyverno..."
 kubectl get events -A --sort-by=.lastTimestamp | tail -n 30 | grep -Ei 'prufwerk|Kyverno|kyverno' || true
 
+# Log I1 evidence: unsigned path denied
+i1_log "DENY" "${UNSIGNED_IMAGE}" "C7_UNSIGNED_PATH"
+
 # 9) Confirm Deployment still on signed :latest
 step "Confirming Deployment is STILL on signed image (${SIGNED_IMAGE})..."
 CUR_IMAGE_AFTER="$(kubectl get deploy prufwerk -o=jsonpath='{.spec.template.spec.containers[0].image}')"
@@ -148,3 +176,7 @@ echo "  - Signed image ${SIGNED_IMAGE} admitted and running."
 echo "  - Unsigned image ${UNSIGNED_IMAGE} blocked by Kyverno (no matching signatures)."
 echo "  - Deployment still uses signed image."
 echo "============================================================"
+
+echo
+echo "[I1] Evidence written to: ${I1_EVIDENCE_PATH}"
+echo "[I1] Correlation ID: ${I1_CORRELATION_ID}"
