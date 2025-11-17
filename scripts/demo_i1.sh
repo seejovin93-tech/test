@@ -49,7 +49,7 @@ CLUSTER_NAME="prufwerk"
 step "Ensuring kind cluster '$CLUSTER_NAME' exists..."
 if ! kind get clusters | grep -q "^${CLUSTER_NAME}$"; then
   echo "  - Creating kind cluster '${CLUSTER_NAME}'..."
-     kind create cluster --name "${CLUSTER_NAME}" --image kindest/node:v1.28.0
+  kind create cluster --name "${CLUSTER_NAME}" --image kindest/node:v1.28.0
 else
   echo "  - kind cluster '${CLUSTER_NAME}' already exists."
 fi
@@ -202,3 +202,13 @@ echo "============================================================"
 echo
 echo "[I1] Evidence written to: ${I1_EVIDENCE_PATH}"
 echo "[I1] Correlation ID: ${I1_CORRELATION_ID}"
+
+# 10) S1B — Ship evidence JSONL to WORM bucket
+step "S1B: Shipping I1 evidence JSONL to WORM bucket..."
+./scripts/ship_i1_evidence.sh "${I1_EVIDENCE_PATH}" || {
+  echo "[FATAL] WORM upload failed; local evidence remains at ${I1_EVIDENCE_PATH}"
+  exit 1
+}
+
+echo
+echo "[S1B] Evidence successfully pinned to WORM (S3 bucket: prufwerk-i1-evidence-worm)"
