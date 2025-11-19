@@ -1,51 +1,31 @@
-name: Heimdall Factory Build
-
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
-
-permissions:
-  id-token: write   # Required for OIDC authentication
-  contents: read    # Required to checkout code
-
-env:
-  AWS_REGION: us-east-1
-  # The Role we just created in Step 1
-  IAM_ROLE_ARN: arn:aws:iam::243102737465:role/HeimdallGitHubActionRole
-  # Repositories created in S3.9
-  ECR_REPO_VENDOR: heimdall-gateway
-  ECR_REPO_CUSTOMER: custody-reference-app
-
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    steps:
+steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 1. Log in to AWS using OIDC (No Secrets!)
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.IAM_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 2. Login to ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 3. Build & Push Heimdall (Vendor)
-      - name: Build and Push Heimdall Gateway
+      - name: Build, Push and Sign
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Build the image using the Dockerfile in root
-          docker build -t $REGISTRY/$ECR_REPO_VENDOR:$IMAGE_TAG .
-          docker push $REGISTRY/$ECR_REPO_VENDOR:$IMAGE_TAG
-          echo "::notice::Heimdall Image Pushed: $REGISTRY/$ECR_REPO_VENDOR:$IMAGE_TAG"
-
-      # 4. (Placeholder) Build Customer App
-      # We will add this later when we have the custody-app code read
+          IMAGE_URI=$REGISTRY/$ECR_REPO_VENDOR:$IMAGE_TAG
+          
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+          
+          # THIS IS THE MISSING MAGIC
+          cosign sign --yes $IMAGE_URI
+          
+          echo "::notice::Image Signed: $IMAGE_URI"
