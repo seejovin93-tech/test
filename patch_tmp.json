@@ -1,0 +1,35 @@
+{
+  "spec": {
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "name": "kyverno",
+            "env": [
+              {
+                "name": "DOCKER_CONFIG",
+                "value": "/tmp"
+              }
+            ],
+            "volumeMounts": [
+              {
+                "name": "auth-vol",
+                "mountPath": "/tmp",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "volumes": [
+          {
+            "name": "auth-vol",
+            "secret": {
+              "secretName": "regcred-tmp",
+              "items": [{"key": "config.json", "path": "config.json"}]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

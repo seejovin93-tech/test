@@ -2,6 +2,7 @@
 FROM golang:1.24 AS builder
 
 WORKDIR /app
+# This copies the entire repo (including cmd/heimdall) into /app
 COPY . .
 
 # Install CA certs now so we can copy them into the scratch image later
@@ -12,8 +13,9 @@ RUN apt-get update \
 # Install dependencies
 RUN go mod tidy
 
-# Build a statically linked binary that works in a scratch image
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o prufwerk .
+# Build a statically linked binary from the NEW location
+# UPDATED: Pointing to ./cmd/heimdall instead of .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o prufwerk ./cmd/heimdall
 
 # Stage 2: copy only what we need into a distroless scratch image
 FROM scratch

@@ -1,0 +1,42 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: heimdall-cluster
+  region: ap-southeast-1  # <--- CHANGED: Singapore
+  version: "1.31"
+  tags:
+    Project: "Heimdall"
+    Environment: "Production"
+
+# Singapore has robust zones: 1a, 1b, 1c
+availabilityZones: ["ap-southeast-1a", "ap-southeast-1b"]
+
+iam:
+  withOIDC: true
+
+managedNodeGroups:
+  - name: heimdall-ng-1
+    instanceType: m5.large # <--- UPGRADED: Back to the robust standard
+    minSize: 2
+    maxSize: 3
+    desiredCapacity: 2
+    volumeSize: 20
+    ssh:
+      allow: false
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        certManager: true
+        ebs: true
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
+addons:
+- name: vpc-cni
+- name: coredns
+- name: kube-proxy
+- name: aws-ebs-csi-driver

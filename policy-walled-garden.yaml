@@ -1,0 +1,20 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: validate-registries
+      match:
+        any:
+        - resources:
+            kinds:
+            - Pod
+      validate:
+        message: "INVARIANT 1 VIOLATION: Unknown provenance! This image is not from the Trusted Heimdall Foundry."
+        pattern:
+          spec:
+            containers:
+            - image: "243102737465.dkr.ecr.us-east-1.amazonaws.com/*"

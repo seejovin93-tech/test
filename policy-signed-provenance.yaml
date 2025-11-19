@@ -1,0 +1,26 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-image-signature
+spec:
+  validationFailureAction: Enforce
+  background: false
+  webhookTimeoutSeconds: 30
+  failurePolicy: Fail
+  rules:
+    - name: verify-github-signature
+      match:
+        any:
+        - resources:
+            kinds:
+            - Pod
+      verifyImages:
+      - imageReferences:
+        - "243102737465.dkr.ecr.us-east-1.amazonaws.com/*"
+        attestors:
+        - entries:
+          - keyless:
+              issuer: "https://token.actions.githubusercontent.com"
+              subject: "https://github.com/seejovin93-tech/test/*"
+              rekor:
+                url: https://rekor.sigstore.dev

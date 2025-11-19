@@ -1,0 +1,40 @@
+{
+  "spec": {
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "name": "kyverno",
+            "volumeMounts": [
+              {
+                "name": "docker-config",
+                "mountPath": "/root/.docker",
+                "readOnly": true
+              }
+            ],
+            "env": [
+              {
+                "name": "DOCKER_CONFIG",
+                "value": "/root/.docker"
+              }
+            ]
+          }
+        ],
+        "volumes": [
+          {
+            "name": "docker-config",
+            "secret": {
+              "secretName": "regcred",
+              "items": [
+                {
+                  "key": ".dockerconfigjson",
+                  "path": "config.json"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}
