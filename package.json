@@ -1,0 +1,9 @@
+{
+  "name": "mimi-engine-core",
+  "version": "1.0.0",
+  "type": "module",
+  "devDependencies": {
+    "hardhat": "2.27.0",
+    "@nomicfoundation/hardhat-toolbox": "6.0.0"
+  }
+}

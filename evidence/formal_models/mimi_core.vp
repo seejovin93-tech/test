@@ -1,0 +1,36 @@
+attacker [active]
+
+// --- Principals ---
+principal Card [
+    knows private share_a
+    knows public G
+]
+
+principal Enclave [
+    knows private share_b
+    knows public G
+]
+
+principal Mobile [
+    knows public G
+]
+
+// --- Protocol Flow ---
+
+// 1. Card calculates and sends public share
+principal Card [
+    pub_a = G^share_a
+]
+Card -> Mobile: pub_a
+
+// 2. Enclave calculates and sends public share
+principal Enclave [
+    pub_b = G^share_b
+]
+Enclave -> Mobile: pub_b
+
+// --- Security Proofs ---
+queries [
+    confidentiality? share_a
+    confidentiality? share_b
+]
