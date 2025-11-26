@@ -1,4 +1,4 @@
-name: Heimdall Factory Build
+name: Heimdall Factory Build (Free Tier)
 
 on:
   push:
@@ -6,14 +6,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write   # Required for OIDC authentication
-  contents: read    # Required to checkout code
+  contents: read
+  packages: write   # Required for GitHub Container Registry
+  id-token: write   # Required for Cosign signing
 
 env:
-  AWS_REGION: us-east-1
-  IAM_ROLE_ARN: arn:aws:iam::243102737465:role/HeimdallGitHubActionRole
-  ECR_REPO_VENDOR: heimdall-gateway
-  ECR_REPO_CUSTOMER: custody-reference-app
+  # use GitHub's built-in registry (Free for public repos)
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -26,43 +26,40 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.7.0
 
-      # 2. Install Syft (The SBOM Tool) - NEW!
+      # 2. Install Syft (The SBOM Tool)
       - name: Install Syft
         uses: anchore/sbom-action/download-syft@v0.15.10
 
-      # 3. Log in to AWS using OIDC
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      # 3. Log in to GitHub Container Registry (NO AWS CREDENTIALS NEEDED)
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
         with:
-          role-to-assume: ${{ env.IAM_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 4. Login to ECR
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      # 5. Build, Push, Sign, and Attest
+      # 4. Build, Push, Sign, and Attest
       - name: Build, Push, Sign, and Attest
         env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          IMAGE_URI=$REGISTRY/$ECR_REPO_VENDOR:$IMAGE_TAG
+          # Docker requires lowercase names
+          REPO_LOWER=$(echo "${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_URI=$REGISTRY/$REPO_LOWER:$IMAGE_TAG
           
           # A. Build
           docker build -t $IMAGE_URI .
           
-          # B. Push
+          # B. Push (To GitHub)
           docker push $IMAGE_URI
           
           # C. Sign (Keyless OIDC)
           cosign sign --yes $IMAGE_URI
           
-          # D. Generate SBOM (The Ingredients)
+          # D. Generate SBOM
           syft $IMAGE_URI -o spdx-json --file sbom.spdx.json
           
-          # E. Attest SBOM (Staple the Ingredients to the Image)
+          # E. Attest SBOM
           cosign attest --yes --predicate sbom.spdx.json --type spdx $IMAGE_URI
           
-          echo "::notice::Image Signed & Attested: $IMAGE_URI"
+          echo "::notice::Image Signed & Attested at: $IMAGE_URI"

@@ -204,11 +204,11 @@ echo "[I1] Evidence written to: ${I1_EVIDENCE_PATH}"
 echo "[I1] Correlation ID: ${I1_CORRELATION_ID}"
 
 # 10) S1B — Ship evidence JSONL to WORM bucket
-step "S1B: Shipping I1 evidence JSONL to WORM bucket..."
-./scripts/ship_i1_evidence.sh "${I1_EVIDENCE_PATH}" || {
-  echo "[FATAL] WORM upload failed; local evidence remains at ${I1_EVIDENCE_PATH}"
-  exit 1
-}
+# step "S1B: Shipping I1 evidence JSONL to WORM bucket..."
+# ./scripts/ship_i1_evidence.sh "${I1_EVIDENCE_PATH}" || {
+#   echo "[FATAL] WORM upload failed; local evidence remains at ${I1_EVIDENCE_PATH}"
+#   exit 1
+# }
 
 echo
-echo "[S1B] Evidence successfully pinned to WORM (S3 bucket: prufwerk-i1-evidence-worm)"
+echo "[S1B] Skipping AWS Upload - Cost Saving Mode Active"
